@@ -34,7 +34,7 @@ module.exports = {
 			directory: path.join(__dirname, "public/"),
 		},
 		port: 3000,
-		liveReload: true,
+		hot: true,
 	},
 	plugins: [new webpack.HotModuleReplacementPlugin()],
 };
