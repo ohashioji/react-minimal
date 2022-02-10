@@ -7,10 +7,15 @@ module.exports = {
 	module: {
 		rules: [
 			{
-				test: /\.(js|jsx|ts|tsx)$/,
-				exclude: /(node_modules|bower_components)/,
+				test: /\.(js|jsx)$/,
+				exclude: /node_modules/,
 				loader: "babel-loader",
 				options: { presets: ["@babel/env"] },
+			},
+			{
+				test: /\.(ts|tsx)$/,
+				exclude: /node_modules/,
+				loader: "ts-loader",
 			},
 			{
 				test: /\.css$/,
@@ -18,7 +23,7 @@ module.exports = {
 			},
 		],
 	},
-	resolve: { extensions: ["*", ".js", ".jsx", ".ts", ".tsx"] },
+	resolve: { extensions: [".css", ".js", ".jsx", ".ts", ".tsx"] },
 	output: {
 		path: path.resolve(__dirname, "dist/"),
 		publicPath: "/dist/",
@@ -29,7 +34,6 @@ module.exports = {
 			directory: path.join(__dirname, "public/"),
 		},
 		port: 3000,
-		historyApiFallback: true,
 		liveReload: true,
 	},
 	plugins: [new webpack.HotModuleReplacementPlugin()],
