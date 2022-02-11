@@ -19,6 +19,20 @@ const HTML_BASE = `<!DOCTYPE html> <html lang='en'><head>
 	<script src='../dist/bundle.js'></script>
 </html>`;
 
+const APP_BASE = `import React from "react";
+export default function App() {
+    return (
+        <div>
+            <h1>React Minimal</h1>
+        </div>
+    );
+}`;
+
+const INDEX_BASE = `import App from "./App";
+import React from "react";
+import ReactDom from "react-dom";
+ReactDom.render(<App />, document.getElementById("root"));
+`;
 function init() {
 	let projectName;
 	const program = new commander.Command("minimal-react")
@@ -65,25 +79,18 @@ function init() {
 		console.log(`${chalk.blue("Creating")} ${chalk.red("document")}.`);
 		process.chdir("public");
 		fs.writeFileSync("./index.html", HTML_BASE);
-		console.log(`${chalk.green("Success!")}.`);
+		console.log(`${chalk.green("Created Document")}.`);
 
 		process.chdir(top);
 		fs.mkdirSync(path.join(top, "/src"));
 		console.log(`${chalk.blue("Creating")} ${chalk.red("script files")}.`);
 		process.chdir("src");
-		fs.writeFileSync(
-			"./App.tsx",
-			`import React from "react";
-export default function App() {
-    return (
-        <div>
-            <h1>React Minimal</h1>
-        </div>
-    );
-}`
-		);
+		fs.writeFileSync("./App.tsx", APP_BASE);
 
-		console.log(`${chalk.green("Success!")}.`);
+		console.log(`${chalk.green("Created App.tsx in /src")}.`);
+		console.log();
+		fs.writeFileSync("./index.tsx", INDEX_BASE);
+		console.log(`${chalk.green("Created index.tsx in /src")}.`);
 	}
 
 	function getTemporaryDirectory() {
