@@ -3,28 +3,14 @@
   "version": "0.0.1",
   "description": "Minimal React.js boilerplate. No logos, tests, icons or stylesheets",
   "type": "module",
-  "scripts": {
-    "dev": "webpack-dev-server --mode development"
-  },
-  "devDependencies": {
-    "@types/react": "^17.0.39",
-    "@types/react-dom": "^17.0.11",
-    "babel-loader": "^8.2.3",
-    "css-loader": "^6.6.0",
-    "style-loader": "^3.3.1",
-    "ts-loader": "^9.2.6",
-    "typescript": "^4.5.5",
-    "webpack": "^5.68.0",
-    "webpack-cli": "^4.9.2",
-    "webpack-dev-server": "^4.7.4"
-  },
   "dependencies": {
     "chalk-animation": "^1.6.0",
     "commander": "^4.1.1",
+    "cross-spawn": "^7.0.3",
     "fs-extra": "^10.0.0",
-    "gradient-string": "^1.2.0",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "ts-node": "^10.5.0"
   },
   "repository": {
     "type": "git",
@@ -33,10 +19,14 @@
   "author": "shaynel",
   "license": "MIT",
   "bin": {
-    "react-minimal": "./main.mjs"
+    "react-minimal": "./dist/main.js"
   },
   "bugs": {
     "url": "https://github.com/shaynelar/react-toolchain/issues"
   },
-  "homepage": "https://github.com/shaynelar/react-toolchain#readme"
+  "homepage": "https://github.com/shaynelar/react-toolchain#readme",
+  "devDependencies": {
+    "@types/fs-extra": "^9.0.13",
+    "@types/gradient-string": "^1.1.2"
+  }
 }

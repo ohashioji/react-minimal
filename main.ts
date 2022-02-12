@@ -11,7 +11,6 @@ import HTMLTemplate from "./template/HTML.template.js";
 import AppTemplate from "./template/App.template.js";
 import indexTemplate from "./template/index.template.js";
 import babelConfig from "./template/Babel.template.js";
-import chalkAnimation from "chalk-animation";
 import gradient from "gradient-string";
 const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 
@@ -27,12 +26,12 @@ const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 		.option("--typescript", "Use TypeScript")
 		.parse(process.argv);
 	if (!projectName) {
-		throw new Error(chalk.rainbow("FAILED: No project name provided"));
+		throw new Error(chalk.red("FAILED: No project name provided"));
 	}
 	const withTypescript = program.typescript;
 	return createApp(projectName, withTypescript);
 
-	function createApp(name, withTypescript) {
+	function createApp(name: string, withTypescript: boolean) {
 		const root = path.resolve(name);
 		const appName = path.basename(root);
 
@@ -59,13 +58,13 @@ const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 		return buildFiles(root, withTypescript, appName);
 	}
 
-	function writeFile(file, content, extension) {
+	function writeFile(file: string, content: string, extension: string) {
 		const base = process.cwd();
 		fs.writeFileSync(`./${file}.${extension}`, content);
 		console.log(`${chalk.green(`Created ${file}.${extension} in ${base}`)}`);
 	}
 
-	function buildFiles(root, withTypescript, appName) {
+	function buildFiles(root: string, withTypescript: boolean, appName: string) {
 		try {
 			fs.mkdirSync(path.join(root, "/public"));
 		} catch (err) {
@@ -86,41 +85,34 @@ const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 		writeFile("./App", AppTemplate, withTypescript ? "tsx" : "jsx");
 		writeFile("./index", indexTemplate, withTypescript ? "tsx" : "jsx");
 
-		const packageInstall = new Promise((resolve, reject) => {
-			console.log(gradient.retro("Installing dependencies..."));
-			DEPENDENCIES.forEach((dependency, i) => {
-				process.stdout.write(gradient.pastel(`Installing ${dependency}`));
-				process.stdout.cursorTo(0);
-				installPackage(dependency);
-			});
-			resolve(),
-				reject((err) => {
-					throw new Error(`FAILED: ${err}`);
-				});
+		console.log(gradient.retro("Installing dependencies..."));
+		DEPENDENCIES.forEach((dependency, i) => {
+			process.stdout.write(gradient.pastel(`Installing ${dependency}`));
+			process.stdout.cursorTo(0);
+			installPackage(dependency);
 		});
-		packageInstall.then(() => {
-			console.log(`${chalk.green("Installed all dependencies")}.`);
-			process.chdir(root);
-			fs.writeFileSync("./webpack.config.js", webpackConfig(withTypescript));
-			console.log(chalk.green("Created webpack.config.js"));
-			fs.writeFileSync("./.babelrc", babelConfig);
-			console.log(chalk.green("Created .babelrc"));
 
-			if (withTypescript) {
-				console.log(
-					chalk.yellowBright(
-						"Detected flag --typescript. Generating tsconfig.json"
-					)
-				);
-				genTsConfig();
-				console.log(gradient.fruit("Created tsconfig.json"));
-			}
+		console.log(`${chalk.green("Installed all dependencies")}.`);
+		process.chdir(root);
+		fs.writeFileSync("./webpack.config.js", webpackConfig(withTypescript));
+		console.log(chalk.green("Created webpack.config.js"));
+		fs.writeFileSync("./.babelrc", babelConfig);
+		console.log(chalk.green("Created .babelrc"));
+
+		if (withTypescript) {
 			console.log(
-				gradient.summer(
-					`SUCCESS: run cd ${appName} && npm run dev to run the app`
+				chalk.yellowBright(
+					"Detected flag --typescript. Generating tsconfig.json"
 				)
 			);
-		});
+			genTsConfig();
+			console.log(gradient.fruit("Created tsconfig.json"));
+		}
+		console.log(
+			gradient.summer(
+				`SUCCESS: run cd ${appName} && npm run dev to run the app`
+			)
+		);
 	}
 
 	function genTsConfig() {
@@ -140,7 +132,7 @@ const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 		fs.writeFileSync("./tsconfig.json", JSON.stringify(tsConfig, null, 4));
 	}
 
-	function installPackage(dependency) {
+	function installPackage(dependency: string) {
 		execSync("npm install " + dependency, { encoding: "utf-8" });
 	}
 })();

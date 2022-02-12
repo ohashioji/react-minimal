@@ -1,4 +1,4 @@
-export default function webpackConfig(withTypescript) {
+export default function webpackConfig(withTypescript: boolean) {
 	const config = `const path = require("path");
 const webpack = require("webpack");
 
