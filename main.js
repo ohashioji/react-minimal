@@ -12,7 +12,7 @@ import AppTemplate from "./template/App.template.js";
 import indexTemplate from "./template/index.template.js";
 import babelConfig from "./template/Babel.template.js";
 import chalkAnimation from "chalk-animation";
-
+import gradient from "gradient-string";
 const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 
 (function init() {
@@ -26,20 +26,20 @@ const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 		})
 		.option("--typescript", "Use TypeScript")
 		.parse(process.argv);
+	if (!projectName) {
+		throw new Error(chalk.rainbow("FAILED: No project name provided"));
+	}
 	const withTypescript = program.typescript;
 	return createApp(projectName, withTypescript);
 
 	function createApp(name, withTypescript) {
 		const root = path.resolve(name);
 		const appName = path.basename(root);
-		if (withTypescript) {
-			console.log(chalk.yellowBright("Detected flag --typescript"));
-		}
 
 		console.log(
-			`${chalk.blue("Creating a new React app:")} ${
-				chalkAnimation.rainbow(appName, 2).text
-			}.`
+			`${gradient.cristal(
+				`Creating a new ${withTypescript && "TypeScript"} React app:`
+			)} ${chalk.magentaBright(appName)}.`
 		);
 		const packageJson = {
 			name: appName,
@@ -56,43 +56,47 @@ const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 			JSON.stringify(packageJson, null, 4) + os.EOL
 		);
 
-		return buildFiles(root, withTypescript);
+		return buildFiles(root, withTypescript, appName);
 	}
 
-	function buildFile(file, content, extension) {
+	function writeFile(file, content, extension) {
 		const base = process.cwd();
 		fs.writeFileSync(`./${file}.${extension}`, content);
 		console.log(`${chalk.green(`Created ${file}.${extension} in ${base}`)}`);
 	}
 
-	function buildFiles(root, withTypescript) {
-		fs.mkdirSync(path.join(root, "/public"));
-		console.log(`${chalk.blue("Creating")} ${chalk.red("document")}.`);
-		process.chdir("public");
-		fs.writeFileSync("./index.html", HTMLTemplate);
-		console.log(`${chalk.green("Created Document")}.`);
+	function buildFiles(root, withTypescript, appName) {
+		try {
+			fs.mkdirSync(path.join(root, "/public"));
+		} catch (err) {
+			throw new Error(
+				chalk.redBright(
+					`FAILED: Project ${appName} already exists. Choose a different name and try again.`
+				)
+			);
+		}
 
+		console.log(`${chalk.blue("Creating an HTML document")}`);
+		process.chdir("public");
+		writeFile("index", HTMLTemplate, "html");
 		process.chdir(root);
 		fs.mkdirSync(path.join(root, "/src"));
 		process.chdir("src");
-		console.log(`${chalk.blue("Creating")} ${chalk.red("script files")}.`);
-		buildFile("./App", AppTemplate, withTypescript ? "tsx" : "jsx");
-		console.log();
-		buildFile("./index", indexTemplate, withTypescript ? "tsx" : "jsx");
+		console.log(`${chalk.blue("Creating script files")}`);
+		writeFile("./App", AppTemplate, withTypescript ? "tsx" : "jsx");
+		writeFile("./index", indexTemplate, withTypescript ? "tsx" : "jsx");
 
 		const packageInstall = new Promise((resolve, reject) => {
-			let outputStr = chalkAnimation.rainbow("").start();
+			console.log(gradient.retro("Installing dependencies..."));
 			DEPENDENCIES.forEach((dependency, i) => {
-				outputStr.replace(dependency);
-				setTimeout(() => {
-					process.stdout.write(
-						chalk.green(`Installing ${chalk.magentaBright(outputStr.text)}`)
-					);
-				}, 500);
-
+				process.stdout.write(gradient.pastel(`Installing ${dependency}`));
 				process.stdout.cursorTo(0);
 				installPackage(dependency);
-			}, resolve());
+			});
+			resolve(),
+				reject((err) => {
+					throw new Error(`FAILED: ${err}`);
+				});
 		});
 		packageInstall.then(() => {
 			console.log(`${chalk.green("Installed all dependencies")}.`);
@@ -109,11 +113,11 @@ const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 					)
 				);
 				genTsConfig();
-				console.log(chalk.green("Created tsconfig.json"));
+				console.log(gradient.fruit("Created tsconfig.json"));
 			}
 			console.log(
-				chalk.greenBright(
-					`Successfully created a new React app. Run cd ${projectName} npm run dev to start`
+				gradient.summer(
+					`SUCCESS: run cd ${appName} && npm run dev to run the app`
 				)
 			);
 		});
