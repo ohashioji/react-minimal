@@ -4,90 +4,18 @@ import commander from "commander";
 import fs from "fs-extra";
 import path from "path";
 import os from "os";
-
 import { execSync } from "child_process";
 import templateJs from "./template/template.js";
-
-const HTML_BASE = `<!DOCTYPE html> <html lang='en'><head>
-		<meta charset='UTF-8' />
-		<meta http-equiv='X-UA-Compatible' content='IE=edge' />
-		<meta name='viewport' content='width=device-width, initial-scale=1.0' />
-		<title>Document</title>
-	</head>
-
-	<body>
-		<div id='root'></div>
-	</body>
-	<script src='../dist/bundle.js'></script>
-</html>`;
-
-const APP_BASE = `import React from "react";
-export default function App() {
-    return (
-        <div>
-            <h1>React Minimal</h1>
-        </div>
-    );
-}`;
-
-const INDEX_BASE = `import App from "./App";
-import React from "react";
-import ReactDom from "react-dom";
-ReactDom.render(<App />, document.getElementById("root"));
-`;
-
-const WEBPACK = `const path = require("path");
-const webpack = require("webpack");
-
-module.exports = {
-	entry: "./src/index.tsx",
-	mode: "development",
-	module: {
-		rules: [
-			{
-				test: /\.(js|jsx)$/,
-				exclude: /node_modules/,
-				loader: "babel-loader",
-				options: { presets: ["@babel/env"] },
-			},
-			{
-				test: /\.(ts|tsx)$/,
-				exclude: /node_modules/,
-				loader: "ts-loader",
-			},
-			{
-				test: /\.css$/,
-				use: ["style-loader", "css-loader"],
-			},
-		],
-	},
-	resolve: { extensions: [".css", ".js", ".jsx", ".ts", ".tsx"] },
-	output: {
-		path: path.resolve(__dirname, "dist/"),
-		publicPath: "/dist/",
-		filename: "bundle.js",
-	},
-	devServer: {
-		static: {
-			directory: path.join(__dirname, "public/"),
-		},
-		port: 3000,
-		hot: true,
-	},
-	plugins: [new webpack.HotModuleReplacementPlugin()],
-};
-`;
-
-const BABEL = `{
-    "presets": [
-        "@babel/env",
-        "@babel/preset-react"
-    ]
-}`;
+import webpackConfig from "./template/webpack.template.js";
+import HTMLTemplate from "./template/HTML.template.js";
+import AppTemplate from "./template/App.template.js";
+import indexTemplate from "./template/index.template.js";
+import babelConfig from "./template/Babel.template.js";
+import chalkAnimation from "chalk-animation";
 
 const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 
-function init() {
+(function init() {
 	let projectName;
 	const program = new commander.Command("minimal-react")
 		.version("0.0.1")
@@ -109,9 +37,9 @@ function init() {
 		}
 
 		console.log(
-			`${chalk.blue("Creating")} a new ${chalk.red(
-				"React"
-			)} app in ${chalk.green(appName)}.`
+			`${chalk.blue("Creating a new React app:")} ${
+				chalkAnimation.rainbow(appName, 2).text
+			}.`
 		);
 		const packageJson = {
 			name: appName,
@@ -138,51 +66,57 @@ function init() {
 	}
 
 	function buildFiles(root, withTypescript) {
-		const top = root;
-
-		fs.mkdirSync(path.join(top, "/public"));
+		fs.mkdirSync(path.join(root, "/public"));
 		console.log(`${chalk.blue("Creating")} ${chalk.red("document")}.`);
 		process.chdir("public");
-		fs.writeFileSync("./index.html", HTML_BASE);
+		fs.writeFileSync("./index.html", HTMLTemplate);
 		console.log(`${chalk.green("Created Document")}.`);
 
-		process.chdir(top);
-		fs.mkdirSync(path.join(top, "/src"));
+		process.chdir(root);
+		fs.mkdirSync(path.join(root, "/src"));
 		process.chdir("src");
 		console.log(`${chalk.blue("Creating")} ${chalk.red("script files")}.`);
-		buildFile("./App", APP_BASE, withTypescript ? "tsx" : "jsx");
+		buildFile("./App", AppTemplate, withTypescript ? "tsx" : "jsx");
 		console.log();
-		buildFile("./index", INDEX_BASE, withTypescript ? "tsx" : "jsx");
+		buildFile("./index", indexTemplate, withTypescript ? "tsx" : "jsx");
 
 		const packageInstall = new Promise((resolve, reject) => {
-			DEPENDENCIES.forEach((dependency) => {
-				console.log(chalk.green(`Installing ${dependency}`));
+			let outputStr = chalkAnimation.rainbow("").start();
+			DEPENDENCIES.forEach((dependency, i) => {
+				outputStr.replace(dependency);
+				setTimeout(() => {
+					process.stdout.write(
+						chalk.green(`Installing ${chalk.magentaBright(outputStr.text)}`)
+					);
+				}, 500);
+
+				process.stdout.cursorTo(0);
 				installPackage(dependency);
 			}, resolve());
 		});
 		packageInstall.then(() => {
 			console.log(`${chalk.green("Installed all dependencies")}.`);
-		});
-		process.chdir(root);
-		fs.writeFileSync("./webpack.config.js", webpackConfig(withTypescript));
-		console.log(chalk.green("Created webpack.config.js"));
-		fs.writeFileSync("./.babelrc", BABEL);
-		console.log(chalk.green("Created .babelrc"));
+			process.chdir(root);
+			fs.writeFileSync("./webpack.config.js", webpackConfig(withTypescript));
+			console.log(chalk.green("Created webpack.config.js"));
+			fs.writeFileSync("./.babelrc", babelConfig);
+			console.log(chalk.green("Created .babelrc"));
 
-		if (withTypescript) {
+			if (withTypescript) {
+				console.log(
+					chalk.yellowBright(
+						"Detected flag --typescript. Generating tsconfig.json"
+					)
+				);
+				genTsConfig();
+				console.log(chalk.green("Created tsconfig.json"));
+			}
 			console.log(
-				chalk.yellowBright(
-					"Detected flag --typescript. Generating tsconfig.json"
+				chalk.greenBright(
+					`Successfully created a new React app. Run cd ${projectName} npm run dev to start`
 				)
 			);
-			genTsConfig();
-			console.log(chalk.green("Created tsconfig.json"));
-		}
-		console.log(
-			chalk.greenBright(
-				`Successfully created a new React app. Run cd ${projectName} npm run dev to start`
-			)
-		);
+		});
 	}
 
 	function genTsConfig() {
@@ -202,54 +136,7 @@ function init() {
 		fs.writeFileSync("./tsconfig.json", JSON.stringify(tsConfig, null, 4));
 	}
 
-	function webpackConfig(withTypescript) {
-		const config = `const path = require("path");
-const webpack = require("webpack");
-
-module.exports = {
-	entry: "./src/index.${withTypescript ? "tsx" : "jsx"}",
-	mode: "development",
-	module: {
-		rules: [
-			{
-				test: /\.(js|jsx)$/,
-				exclude: /node_modules/,
-				loader: "babel-loader",
-				options: { presets: ["@babel/env"] },
-			},
-			{
-				test: /\.(ts|tsx)$/,
-				exclude: /node_modules/,
-				loader: "ts-loader",
-			},
-			{
-				test: /\.css$/,
-				use: ["style-loader", "css-loader"],
-			},
-		],
-	},
-	resolve: { extensions: [".css", ".js", ".jsx", ".ts", ".tsx"] },
-	output: {
-		path: path.resolve(__dirname, "dist/"),
-		publicPath: "/dist/",
-		filename: "bundle.js",
-	},
-	devServer: {
-		static: {
-			directory: path.join(__dirname, "public/"),
-		},
-		port: 3000,
-		hot: true,
-	},
-	plugins: [new webpack.HotModuleReplacementPlugin()],
-};
-`;
-		return config;
-	}
-
 	function installPackage(dependency) {
-		const status = execSync("npm install " + dependency, { encoding: "utf-8" });
-		console.log(chalk.cyanBright(`Installed ${dependency}`));
+		execSync("npm install " + dependency, { encoding: "utf-8" });
 	}
-}
-init();
+})();
