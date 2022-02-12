@@ -1,5 +1,6 @@
 # react-minimal
 
+https://www.npmjs.com/package/react-minimal  
 Minimal React.js boilerplate. No logos, tests, icons or stylesheets
 
 Currently support JavaScript, TypeScript and CSS
