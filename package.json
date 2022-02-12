@@ -3,6 +3,10 @@
   "version": "0.0.5",
   "description": "Minimal React.js boilerplate. No logos, tests, icons or stylesheets",
   "type": "module",
+  "scripts": {
+    "prepublishOnly": "npm run build && cp -r ./dist/* . && rm -rf ./dist",
+    "postpublish": "git clean -fd"
+  },
   "dependencies": {
     "chalk-animation": "^1.6.0",
     "commander": "^4.1.1",
