@@ -1,5 +1,6 @@
 # react-minimal
 
+https://www.npmjs.com/package/react-minimal  
 Create a React.js app without the boilerplate. No logos, tests, icons or stylesheets
 
 Currently supports JavaScript, TypeScript and CSS.
