@@ -5,12 +5,12 @@ import fs from "fs-extra";
 import path from "path";
 import os from "os";
 import { execSync } from "child_process";
-import templateJs from "./template/template.js";
-import webpackConfig from "./template/webpack.template.js";
-import HTMLTemplate from "./template/HTML.template.js";
-import AppTemplate from "./template/App.template.js";
-import indexTemplate from "./template/index.template.js";
-import babelConfig from "./template/Babel.template.js";
+import templateJs from "./template/template.mjs";
+import webpackConfig from "./template/webpack.template.mjs";
+import HTMLTemplate from "./template/HTML.template.mjs";
+import AppTemplate from "./template/App.template.mjs";
+import indexTemplate from "./template/index.template.mjs";
+import babelConfig from "./template/Babel.template.mjs";
 import gradient from "gradient-string";
 const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 
