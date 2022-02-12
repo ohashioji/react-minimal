@@ -2,7 +2,8 @@
 
 Minimal React.js boilerplate. No logos, tests, icons or stylesheets
 
-Currently support JavaScript, TypeScript and CSS
+Currently supports JavaScript, TypeScript and CSS.
+Hot Reloads are enabled by default
 
 ## Run
 
