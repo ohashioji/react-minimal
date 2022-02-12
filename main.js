@@ -2,10 +2,9 @@
 import chalk from "chalk";
 import commander from "commander";
 import fs from "fs-extra";
-import path, { resolve } from "path";
+import path from "path";
 import os from "os";
-import tmp from "tmp";
-import spawn from "cross-spawn";
+
 import { execSync } from "child_process";
 import templateJs from "./template/template.js";
 
@@ -97,13 +96,17 @@ function init() {
 		.action((name) => {
 			projectName = name;
 		})
+		.option("--typescript", "Use TypeScript")
 		.parse(process.argv);
+	const withTypescript = program.typescript;
+	return createApp(projectName, withTypescript);
 
-	return createApp(projectName);
-
-	function createApp(name) {
+	function createApp(name, withTypescript) {
 		const root = path.resolve(name);
 		const appName = path.basename(root);
+		if (withTypescript) {
+			console.log(chalk.yellowBright("Detected flag --typescript"));
+		}
 
 		console.log(
 			`${chalk.blue("Creating")} a new ${chalk.red(
@@ -125,20 +128,18 @@ function init() {
 			JSON.stringify(packageJson, null, 4) + os.EOL
 		);
 
-		return buildFiles(root);
+		return buildFiles(root, withTypescript);
 	}
 
-	function buildFile(path, content, root, message, file) {
-		fs.mkdirSync(path.join(root, path));
-		console.log(`${chalk.blue("Creating")} ${chalk.red(message)}.`);
-		process.chdir(root);
-		fs.writeFileSync(file, content);
-		console.log(`${chalk.green(`Created ${file}`)}.`);
+	function buildFile(file, content, extension) {
+		const base = process.cwd();
+		fs.writeFileSync(`./${file}.${extension}`, content);
+		console.log(`${chalk.green(`Created ${file}.${extension} in ${base}`)}`);
 	}
 
-	function buildFiles(root) {
+	function buildFiles(root, withTypescript) {
 		const top = root;
-		
+
 		fs.mkdirSync(path.join(top, "/public"));
 		console.log(`${chalk.blue("Creating")} ${chalk.red("document")}.`);
 		process.chdir("public");
@@ -147,14 +148,11 @@ function init() {
 
 		process.chdir(top);
 		fs.mkdirSync(path.join(top, "/src"));
-		console.log(`${chalk.blue("Creating")} ${chalk.red("script files")}.`);
 		process.chdir("src");
-		fs.writeFileSync("./App.tsx", APP_BASE);
-
-		console.log(`${chalk.green("Created App.tsx in /src")}.`);
+		console.log(`${chalk.blue("Creating")} ${chalk.red("script files")}.`);
+		buildFile("./App", APP_BASE, withTypescript ? "tsx" : "jsx");
 		console.log();
-		fs.writeFileSync("./index.tsx", INDEX_BASE);
-		console.log(`${chalk.green("Created index.tsx in /src")}.`);
+		buildFile("./index", INDEX_BASE, withTypescript ? "tsx" : "jsx");
 
 		const packageInstall = new Promise((resolve, reject) => {
 			DEPENDENCIES.forEach((dependency) => {
@@ -166,12 +164,20 @@ function init() {
 			console.log(`${chalk.green("Installed all dependencies")}.`);
 		});
 		process.chdir(root);
-		fs.writeFileSync("./webpack.config.js", WEBPACK);
+		fs.writeFileSync("./webpack.config.js", webpackConfig(withTypescript));
 		console.log(chalk.green("Created webpack.config.js"));
 		fs.writeFileSync("./.babelrc", BABEL);
 		console.log(chalk.green("Created .babelrc"));
-		genTsConfig();
-		console.log(chalk.green("Created tsconfig.json"));
+
+		if (withTypescript) {
+			console.log(
+				chalk.yellowBright(
+					"Detected flag --typescript. Generating tsconfig.json"
+				)
+			);
+			genTsConfig();
+			console.log(chalk.green("Created tsconfig.json"));
+		}
 		console.log(
 			chalk.greenBright(
 				`Successfully created a new React app. Run cd ${projectName} npm run dev to start`
@@ -194,6 +200,51 @@ function init() {
 		};
 
 		fs.writeFileSync("./tsconfig.json", JSON.stringify(tsConfig, null, 4));
+	}
+
+	function webpackConfig(withTypescript) {
+		const config = `const path = require("path");
+const webpack = require("webpack");
+
+module.exports = {
+	entry: "./src/index.${withTypescript ? "tsx" : "jsx"}",
+	mode: "development",
+	module: {
+		rules: [
+			{
+				test: /\.(js|jsx)$/,
+				exclude: /node_modules/,
+				loader: "babel-loader",
+				options: { presets: ["@babel/env"] },
+			},
+			{
+				test: /\.(ts|tsx)$/,
+				exclude: /node_modules/,
+				loader: "ts-loader",
+			},
+			{
+				test: /\.css$/,
+				use: ["style-loader", "css-loader"],
+			},
+		],
+	},
+	resolve: { extensions: [".css", ".js", ".jsx", ".ts", ".tsx"] },
+	output: {
+		path: path.resolve(__dirname, "dist/"),
+		publicPath: "/dist/",
+		filename: "bundle.js",
+	},
+	devServer: {
+		static: {
+			directory: path.join(__dirname, "public/"),
+		},
+		port: 3000,
+		hot: true,
+	},
+	plugins: [new webpack.HotModuleReplacementPlugin()],
+};
+`;
+		return config;
 	}
 
 	function installPackage(dependency) {
