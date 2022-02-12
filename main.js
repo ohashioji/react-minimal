@@ -105,7 +105,6 @@ function init() {
 		const root = path.resolve(name);
 		const appName = path.basename(root);
 
-		const originalDirectory = process.cwd();
 		console.log(
 			`${chalk.blue("Creating")} a new ${chalk.red(
 				"React"
@@ -117,7 +116,7 @@ function init() {
 			private: true,
 			scripts: {
 				dev: "webpack-dev-server --mode development",
-			}
+			},
 		};
 		fs.ensureDirSync(appName);
 		process.chdir(appName);
@@ -129,9 +128,17 @@ function init() {
 		return buildFiles(root);
 	}
 
+	function buildFile(path, content, root, message, file) {
+		fs.mkdirSync(path.join(root, path));
+		console.log(`${chalk.blue("Creating")} ${chalk.red(message)}.`);
+		process.chdir(root);
+		fs.writeFileSync(file, content);
+		console.log(`${chalk.green(`Created ${file}`)}.`);
+	}
+
 	function buildFiles(root) {
 		const top = root;
-
+		
 		fs.mkdirSync(path.join(top, "/public"));
 		console.log(`${chalk.blue("Creating")} ${chalk.red("document")}.`);
 		process.chdir("public");
@@ -163,6 +170,8 @@ function init() {
 		console.log(chalk.green("Created webpack.config.js"));
 		fs.writeFileSync("./.babelrc", BABEL);
 		console.log(chalk.green("Created .babelrc"));
+		genTsConfig();
+		console.log(chalk.green("Created tsconfig.json"));
 		console.log(
 			chalk.greenBright(
 				`Successfully created a new React app. Run cd ${projectName} npm run dev to start`
@@ -170,33 +179,26 @@ function init() {
 		);
 	}
 
-	function installPackage(dependency) {
-		const status = execSync("npm install " + dependency, { encoding: "utf-8" });
-		console.log("installed", dependency);
+	function genTsConfig() {
+		const tsConfig = {
+			compilerOptions: {
+				outDir: "./dist/",
+				noImplicitAny: true,
+				module: "es6",
+				target: "es5",
+				jsx: "react",
+				allowJs: true,
+				moduleResolution: "node",
+				allowSyntheticDefaultImports: true,
+			},
+		};
+
+		fs.writeFileSync("./tsconfig.json", JSON.stringify(tsConfig, null, 4));
 	}
 
-	function getTemporaryDirectory() {
-		return new Promise((resolve, reject) => {
-			// Unsafe cleanup lets us recursively delete the directory if it contains
-			// contents; by default it only allows removal if it's empty
-			tmp.dir({ unsafeCleanup: true }, (err, tmpdir, callback) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve({
-						tmpdir: tmpdir,
-						cleanup: () => {
-							try {
-								callback();
-							} catch (ignored) {
-								// Callback might throw and fail, since it's a temp directory the
-								// OS will clean it up eventually...
-							}
-						},
-					});
-				}
-			});
-		});
+	function installPackage(dependency) {
+		const status = execSync("npm install " + dependency, { encoding: "utf-8" });
+		console.log(chalk.cyanBright(`Installed ${dependency}`));
 	}
 }
 init();
