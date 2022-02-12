@@ -1,6 +1,6 @@
 {
   "name": "react-minimal",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Minimal React.js boilerplate. No logos, tests, icons or stylesheets",
   "type": "module",
   "dependencies": {
@@ -19,7 +19,7 @@
   "author": "shaynel",
   "license": "MIT",
   "bin": {
-    "react-minimal": "./dist/main.js"
+    "react-minimal": "dist/main.js"
   },
   "bugs": {
     "url": "https://github.com/shaynelar/react-toolchain/issues"
