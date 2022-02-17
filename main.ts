@@ -4,7 +4,7 @@ import commander from "commander";
 import fs from "fs-extra";
 import path from "path";
 import os from "os";
-import { execSync } from "child_process";
+import { execSync, exec } from "child_process";
 import templateJs from "./template/template.js";
 import webpackConfig from "./template/webpack.template.js";
 import HTMLTemplate from "./template/HTML.template.js";
@@ -110,10 +110,10 @@ const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 			console.log(gradient.fruit("Created tsconfig.json"));
 		}
 		process.chdir(root);
-		execSync("npm run dev");
-		console.log(gradient.summer(`SUCCESS: App running @localhost:3000`));
+		exec("npm run dev", () => {
+			console.log(gradient.summer(`SUCCESS: App running @localhost:3000`));
+		});
 	}
-
 	function genTsConfig() {
 		const tsConfig = {
 			compilerOptions: {
