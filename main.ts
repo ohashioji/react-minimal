@@ -12,6 +12,7 @@ import AppTemplate from "./template/App.template.js";
 import indexTemplate from "./template/index.template.js";
 import babelConfig from "./template/Babel.template.js";
 import gradient from "gradient-string";
+import * as readline from "readline";
 const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 
 (function init() {
@@ -37,7 +38,7 @@ const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 
 		console.log(
 			`${gradient.cristal(
-				`Creating a new ${withTypescript && "TypeScript"} React app:`
+				`Creating a new ${withTypescript ? "TypeScript" : ""} React app:`
 			)} ${chalk.magentaBright(appName)}.`
 		);
 		const packageJson = {
@@ -84,11 +85,11 @@ const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 		console.log(`${chalk.blue("Creating script files")}`);
 		writeFile("./App", AppTemplate, withTypescript ? "tsx" : "jsx");
 		writeFile("./index", indexTemplate, withTypescript ? "tsx" : "jsx");
-
 		console.log(gradient.retro("Installing dependencies..."));
 		DEPENDENCIES.forEach((dependency, i) => {
 			process.stdout.write(gradient.pastel(`Installing ${dependency}`));
-			process.stdout.cursorTo(0);
+			readline.clearLine(process.stdout, 0);
+			readline.cursorTo(process.stdout, 0);
 			installPackage(dependency);
 		});
 
@@ -108,11 +109,9 @@ const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 			genTsConfig();
 			console.log(gradient.fruit("Created tsconfig.json"));
 		}
-		console.log(
-			gradient.summer(
-				`SUCCESS: run cd ${appName} && npm run dev to run the app`
-			)
-		);
+		process.chdir(root);
+		execSync("npm run dev");
+		console.log(gradient.summer(`SUCCESS: App running @localhost:3000`));
 	}
 
 	function genTsConfig() {
