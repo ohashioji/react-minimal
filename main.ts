@@ -4,7 +4,7 @@ import commander from "commander";
 import fs from "fs-extra";
 import path from "path";
 import os from "os";
-import { execSync,  spawn } from "child_process";
+import { execSync } from "child_process";
 import templateJs from "./template/template.js";
 import webpackConfig from "./template/webpack.template.js";
 import HTMLTemplate from "./template/HTML.template.js";
@@ -37,7 +37,7 @@ const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 
 		console.log(
 			`${gradient.cristal(
-				`Creating a new ${withTypescript ? "TypeScript" : ""} React app:`
+				`Creating a new ${withTypescript && "TypeScript"} React app:`
 			)} ${chalk.magentaBright(appName)}.`
 		);
 		const packageJson = {
@@ -84,9 +84,9 @@ const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 		console.log(`${chalk.blue("Creating script files")}`);
 		writeFile("./App", AppTemplate, withTypescript ? "tsx" : "jsx");
 		writeFile("./index", indexTemplate, withTypescript ? "tsx" : "jsx");
+
 		console.log(gradient.retro("Installing dependencies..."));
 		DEPENDENCIES.forEach((dependency, i) => {
-			process.stdout.write(gradient.pastel(`Installing ${dependency}`));
 			process.stdout.write(gradient.pastel(`Installing ${dependency}`));
 			process.stdout.cursorTo(0);
 			installPackage(dependency);
@@ -108,34 +108,31 @@ const DEPENDENCIES = [...Object.keys(templateJs.dependencies)];
 			genTsConfig();
 			console.log(gradient.fruit("Created tsconfig.json"));
 		}
-		process.chdir(root);
-		const child = spawn(/^win/.test(process.platform) ? "npm.cmd" : "npm", [
-			"run",
-			"start",
-		]);
-		child.stdout.on("data", () => {
-			process.stdout.write("Server is live @localhost:3000");
-		});
+		console.log(
+			gradient.summer(
+				`SUCCESS: run cd ${appName} && npm run dev to run the app`
+			)
+		);
+	}
 
-		function genTsConfig() {
-			const tsConfig = {
-				compilerOptions: {
-					outDir: "./dist/",
-					noImplicitAny: true,
-					module: "es6",
-					target: "es5",
-					jsx: "react",
-					allowJs: true,
-					moduleResolution: "node",
-					allowSyntheticDefaultImports: true,
-				},
-			};
+	function genTsConfig() {
+		const tsConfig = {
+			compilerOptions: {
+				outDir: "./dist/",
+				noImplicitAny: true,
+				module: "es6",
+				target: "es5",
+				jsx: "react",
+				allowJs: true,
+				moduleResolution: "node",
+				allowSyntheticDefaultImports: true,
+			},
+		};
 
-			fs.writeFileSync("./tsconfig.json", JSON.stringify(tsConfig, null, 4));
-		}
+		fs.writeFileSync("./tsconfig.json", JSON.stringify(tsConfig, null, 4));
+	}
 
-		function installPackage(dependency: string) {
-			execSync("npm install " + dependency, { encoding: "utf-8" });
-		}
+	function installPackage(dependency: string) {
+		execSync("npm install " + dependency, { encoding: "utf-8" });
 	}
 })();
